@@ -3,6 +3,10 @@ import Vue from "vue";
 import Vuex from "vuex";
 import axios from "axios";
 
+const API_URL =
+  "https://catalogo-autos-api-production.irina-rivera.workers.dev";
+axios.defaults.baseURL = API_URL;
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -67,7 +71,6 @@ export default new Vuex.Store({
       }
     },
     async createAuto({ dispatch }, auto) {
-      // ← commit eliminado
       try {
         const response = await axios.post("/api/autos", auto);
         await dispatch("fetchAutos");
@@ -78,7 +81,6 @@ export default new Vuex.Store({
       }
     },
     async updateAuto({ dispatch }, { id, auto }) {
-      // ← commit eliminado
       try {
         const response = await axios.put(`/api/autos/${id}`, auto);
         await dispatch("fetchAutos");
@@ -89,7 +91,6 @@ export default new Vuex.Store({
       }
     },
     async deleteAuto({ dispatch }, id) {
-      // ← commit eliminado
       try {
         await axios.delete(`/api/autos/${id}`);
         await dispatch("fetchAutos");
@@ -104,6 +105,15 @@ export default new Vuex.Store({
         await dispatch("fetchFabricantes");
       } catch (error) {
         console.error("Error creating fabricante:", error);
+        throw error;
+      }
+    },
+    async updateFabricante({ dispatch }, { id, fabricante }) {
+      try {
+        await axios.put(`/api/fabricantes/${id}`, fabricante);
+        await dispatch("fetchFabricantes");
+      } catch (error) {
+        console.error("Error updating fabricante:", error);
         throw error;
       }
     },
@@ -122,6 +132,16 @@ export default new Vuex.Store({
         await dispatch("fetchCategorias");
       } catch (error) {
         console.error("Error creating categoria:", error);
+        throw error;
+      }
+    },
+    // ✅ CORREGIDO: updateCategoria DENTRO de actions
+    async updateCategoria({ dispatch }, { id, categoria }) {
+      try {
+        await axios.put(`/api/categorias/${id}`, categoria);
+        await dispatch("fetchCategorias");
+      } catch (error) {
+        console.error("Error updating categoria:", error);
         throw error;
       }
     },
