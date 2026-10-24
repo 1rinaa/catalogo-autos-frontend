@@ -31,11 +31,16 @@
           <i class="fas fa-eye"></i>
           <span>Ver</span>
         </button>
-        <button class="btn-action btn-edit" @click="$emit('editar', categoria)">
+        <button
+          v-if="isAuthenticated"
+          class="btn-action btn-edit"
+          @click="$emit('editar', categoria)"
+        >
           <i class="fas fa-pen"></i>
           <span>Editar</span>
         </button>
         <button
+          v-if="isAuthenticated"
           class="btn-action btn-delete"
           @click="$emit('eliminar', categoria.id)"
         >
@@ -48,6 +53,8 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
   name: "CategoriaCard",
   props: {
@@ -55,6 +62,9 @@ export default {
       type: Object,
       required: true,
     },
+  },
+  computed: {
+    ...mapGetters(["isAuthenticated"]),
   },
 };
 </script>

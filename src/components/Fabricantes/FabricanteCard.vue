@@ -96,6 +96,7 @@
           <span>Ver</span>
         </button>
         <button
+          v-if="isAuthenticated"
           class="btn-action btn-edit"
           @click="$emit('editar', fabricante)"
         >
@@ -103,6 +104,7 @@
           <span>Editar</span>
         </button>
         <button
+          v-if="isAuthenticated"
           class="btn-action btn-delete"
           @click="$emit('eliminar', fabricante.id)"
         >
@@ -115,6 +117,7 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 const SLUG_OVERRIDES = {
   "mercedes benz": "mercedes",
   "mercedes-benz": "mercedes",
@@ -143,6 +146,7 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(["isAuthenticated"]),
     logoSlug() {
       if (!this.fabricante?.nombre) return null;
       const normalized = this.fabricante.nombre

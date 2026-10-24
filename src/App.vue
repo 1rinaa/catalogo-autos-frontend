@@ -87,6 +87,39 @@
                 <i class="fas fa-sliders-h"></i> Categorías
               </router-link>
             </li>
+
+            <!-- Elementos de Autenticación con JWT -->
+            <template v-if="isAuthenticated">
+              <li class="nav-item ms-lg-3 my-2 my-lg-0">
+                <router-link
+                  to="/profile"
+                  class="user-pill text-decoration-none"
+                  title="Ver y editar mi perfil"
+                >
+                  <i class="fas fa-user-circle text-gold me-1"></i>
+                  <span>{{
+                    currentUser ? currentUser.nombre : "Usuario"
+                  }}</span>
+                  <i class="fas fa-cog ms-2 text-muted-gold"></i>
+                </router-link>
+              </li>
+              <li class="nav-item ms-lg-2">
+                <button
+                  class="btn-logout"
+                  @click="handleLogout"
+                  title="Cerrar Sesión"
+                >
+                  <i class="fas fa-sign-out-alt me-1"></i> Salir
+                </button>
+              </li>
+            </template>
+            <template v-else>
+              <li class="nav-item ms-lg-3">
+                <router-link class="btn-nav-login" to="/login">
+                  <i class="fas fa-sign-in-alt me-1"></i> Ingresar
+                </router-link>
+              </li>
+            </template>
           </ul>
         </div>
       </div>
@@ -142,8 +175,22 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from "vuex";
+
 export default {
   name: "App",
+  computed: {
+    ...mapGetters(["isAuthenticated", "currentUser"]),
+  },
+  methods: {
+    ...mapActions(["logout"]),
+    handleLogout() {
+      this.logout();
+      if (this.$route.path !== "/") {
+        this.$router.push("/");
+      }
+    },
+  },
 };
 </script>
 
@@ -476,6 +523,76 @@ body {
     padding-top: 70px;
     padding-left: 15px;
     padding-right: 15px;
+  }
+}
+
+/* ===== ESTILOS DE AUTENTICACIÓN NAVBAR ===== */
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 215, 0, 0.18);
+    border-color: #ffd700;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .text-muted-gold {
+    color: rgba(255, 215, 0, 0.6);
+    font-size: 0.75rem;
+  }
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #bbb;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: rgba(220, 53, 69, 0.4);
+    color: #ff6b6b;
+  }
+}
+
+.btn-nav-login {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 18px !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.15),
+    rgba(255, 165, 0, 0.1)
+  );
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 20px;
+  color: #ffd700 !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #ffd700, #ffa500);
+    color: #000 !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    transform: translateY(-1px);
   }
 }
 </style>

@@ -3,18 +3,54 @@ import Vue from "vue";
 import Vuex from "vuex";
 import axios from "axios";
 
-const API_URL =
-  "https://catalogo-autos-api-production.irina-rivera.workers.dev";
+// Si se despliega en Netlify bajo el mismo dominio, la baseURL relativa "" funciona perfecto
+const API_URL = process.env.VUE_APP_API_URL || "";
 axios.defaults.baseURL = API_URL;
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
+// Leer sesión previa de localStorage si existe
+const savedToken = localStorage.getItem("token") || "";
+let savedUser = null;
+try {
+  savedUser = JSON.parse(localStorage.getItem("user") || "null");
+} catch (e) {
+  savedUser = null;
+}
+
+// Configurar interceptor de solicitud para enviar el Bearer Token automáticamente
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+const store = new Vuex.Store({
   state: {
     autos: [],
     fabricantes: [],
     categorias: [],
     loading: false,
+
+    // Estado de Autenticación
+    token: savedToken,
+    user: savedUser,
+    authLoading: false,
+    authError: null,
+  },
+  getters: {
+    isAuthenticated: (state) => !!state.token,
+    currentUser: (state) => state.user,
+    authError: (state) => state.authError,
+    authLoading: (state) => state.authLoading,
+    getAutoById: (state) => (id) => {
+      return state.autos.find((auto) => auto.id === id);
+    },
   },
   mutations: {
     SET_AUTOS(state, autos) {
@@ -41,8 +77,103 @@ export default new Vuex.Store({
     DELETE_AUTO(state, id) {
       state.autos = state.autos.filter((a) => a.id !== id);
     },
+
+    // Mutaciones de Autenticación
+    SET_AUTH(state, { token, user }) {
+      state.token = token;
+      state.user = user;
+      state.authError = null;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+    },
+    CLEAR_AUTH(state) {
+      state.token = "";
+      state.user = null;
+      state.authError = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    },
+    SET_AUTH_LOADING(state, loading) {
+      state.authLoading = loading;
+    },
+    SET_AUTH_ERROR(state, error) {
+      state.authError = error;
+    },
   },
   actions: {
+    // ==========================================
+    // AUTENTICACIÓN
+    // ==========================================
+    async login({ commit }, credentials) {
+      commit("SET_AUTH_LOADING", true);
+      commit("SET_AUTH_ERROR", null);
+      try {
+        const response = await axios.post("/api/auth/login", credentials);
+        const { token, user } = response.data;
+        commit("SET_AUTH", { token, user });
+        return response.data;
+      } catch (error) {
+        const msg =
+          (error.response &&
+            error.response.data &&
+            error.response.data.error) ||
+          "Error al iniciar sesión. Verifique sus credenciales.";
+        commit("SET_AUTH_ERROR", msg);
+        throw new Error(msg);
+      } finally {
+        commit("SET_AUTH_LOADING", false);
+      }
+    },
+
+    async register({ commit }, userData) {
+      commit("SET_AUTH_LOADING", true);
+      commit("SET_AUTH_ERROR", null);
+      try {
+        const response = await axios.post("/api/auth/register", userData);
+        const { token, user } = response.data;
+        commit("SET_AUTH", { token, user });
+        return response.data;
+      } catch (error) {
+        const msg =
+          (error.response &&
+            error.response.data &&
+            error.response.data.error) ||
+          "Error al registrar usuario.";
+        commit("SET_AUTH_ERROR", msg);
+        throw new Error(msg);
+      } finally {
+        commit("SET_AUTH_LOADING", false);
+      }
+    },
+
+    logout({ commit }) {
+      commit("CLEAR_AUTH");
+    },
+
+    async updateProfile({ commit }, profileData) {
+      commit("SET_AUTH_LOADING", true);
+      commit("SET_AUTH_ERROR", null);
+      try {
+        const response = await axios.put("/api/auth/profile", profileData);
+        const { token, user } = response.data;
+        commit("SET_AUTH", { token, user });
+        return response.data;
+      } catch (error) {
+        const msg =
+          (error.response &&
+            error.response.data &&
+            error.response.data.error) ||
+          "Error al actualizar el perfil.";
+        commit("SET_AUTH_ERROR", msg);
+        throw new Error(msg);
+      } finally {
+        commit("SET_AUTH_LOADING", false);
+      }
+    },
+
+    // ==========================================
+    // AUTOS
+    // ==========================================
     async fetchAutos({ commit }) {
       commit("SET_LOADING", true);
       try {
@@ -52,22 +183,6 @@ export default new Vuex.Store({
         console.error("Error fetching autos:", error);
       } finally {
         commit("SET_LOADING", false);
-      }
-    },
-    async fetchFabricantes({ commit }) {
-      try {
-        const response = await axios.get("/api/fabricantes");
-        commit("SET_FABRICANTES", response.data);
-      } catch (error) {
-        console.error("Error fetching fabricantes:", error);
-      }
-    },
-    async fetchCategorias({ commit }) {
-      try {
-        const response = await axios.get("/api/categorias");
-        commit("SET_CATEGORIAS", response.data);
-      } catch (error) {
-        console.error("Error fetching categorias:", error);
       }
     },
     async createAuto({ dispatch }, auto) {
@@ -99,6 +214,18 @@ export default new Vuex.Store({
         throw error;
       }
     },
+
+    // ==========================================
+    // FABRICANTES
+    // ==========================================
+    async fetchFabricantes({ commit }) {
+      try {
+        const response = await axios.get("/api/fabricantes");
+        commit("SET_FABRICANTES", response.data);
+      } catch (error) {
+        console.error("Error fetching fabricantes:", error);
+      }
+    },
     async createFabricante({ dispatch }, fabricante) {
       try {
         await axios.post("/api/fabricantes", fabricante);
@@ -126,6 +253,18 @@ export default new Vuex.Store({
         throw error;
       }
     },
+
+    // ==========================================
+    // CATEGORÍAS
+    // ==========================================
+    async fetchCategorias({ commit }) {
+      try {
+        const response = await axios.get("/api/categorias");
+        commit("SET_CATEGORIAS", response.data);
+      } catch (error) {
+        console.error("Error fetching categorias:", error);
+      }
+    },
     async createCategoria({ dispatch }, categoria) {
       try {
         await axios.post("/api/categorias", categoria);
@@ -135,7 +274,6 @@ export default new Vuex.Store({
         throw error;
       }
     },
-    // ✅ CORREGIDO: updateCategoria DENTRO de actions
     async updateCategoria({ dispatch }, { id, categoria }) {
       try {
         await axios.put(`/api/categorias/${id}`, categoria);
@@ -155,9 +293,6 @@ export default new Vuex.Store({
       }
     },
   },
-  getters: {
-    getAutoById: (state) => (id) => {
-      return state.autos.find((auto) => auto.id === id);
-    },
-  },
 });
+
+export default store;

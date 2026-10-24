@@ -77,16 +77,10 @@
             <div class="card-premium">
               <div class="card-image-wrapper">
                 <img
-                  :src="
-                    auto.imagen ||
-                    'https://via.placeholder.com/400x300/222/444?text=🏎️+No+Image'
-                  "
+                  :src="getAutoImageUrl(auto.imagen)"
                   class="card-image"
                   :alt="auto.modelo"
-                  @error="
-                    auto.imagen =
-                      'https://via.placeholder.com/400x300/222/444?text=🏎️+No+Image'
-                  "
+                  @error="handleImageError"
                 />
                 <div class="card-power-badge">
                   <i class="fas fa-tachometer-alt"></i> {{ auto.potencia }} HP
@@ -174,6 +168,23 @@ export default {
     },
     featuredAutos() {
       return this.autos.slice(0, 3);
+    },
+  },
+  methods: {
+    getAutoImageUrl(imagen) {
+      if (!imagen) return "/images/no-image.svg";
+      const img = imagen.trim();
+      if (
+        img.startsWith("http://") ||
+        img.startsWith("https://") ||
+        img.startsWith("/")
+      ) {
+        return img;
+      }
+      return `/images/autos/${img}`;
+    },
+    handleImageError(event) {
+      event.target.src = "/images/no-image.svg";
     },
   },
   mounted() {

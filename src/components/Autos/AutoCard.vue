@@ -52,10 +52,15 @@
           <i class="fas fa-eye"></i>
           <span>Ver</span>
         </button>
-        <button class="btn-action btn-edit" @click="$emit('editar', auto)">
+        <button
+          v-if="isAuthenticated"
+          class="btn-action btn-edit"
+          @click="$emit('editar', auto)"
+        >
           <i class="fas fa-pen"></i>
         </button>
         <button
+          v-if="isAuthenticated"
           class="btn-action btn-delete"
           @click="$emit('eliminar', auto.id)"
         >
@@ -67,6 +72,8 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
   name: "AutoCard",
   props: {
@@ -75,16 +82,26 @@ export default {
       required: true,
     },
   },
+  computed: {
+    ...mapGetters(["isAuthenticated"]),
+  },
   methods: {
     getImagenUrl() {
-      if (this.auto && this.auto.imagen) {
-        return this.auto.imagen;
+      if (!this.auto || !this.auto.imagen) {
+        return "/images/no-image.svg";
       }
-      return "https://via.placeholder.com/400x300/222/444?text=🏎️+No+Image";
+      const img = this.auto.imagen.trim();
+      if (
+        img.startsWith("http://") ||
+        img.startsWith("https://") ||
+        img.startsWith("/")
+      ) {
+        return img;
+      }
+      return `/images/autos/${img}`;
     },
     handleImageError(event) {
-      event.target.src =
-        "https://via.placeholder.com/400x300/222/444?text=🏎️+No+Image";
+      event.target.src = "/images/no-image.svg";
     },
   },
 };

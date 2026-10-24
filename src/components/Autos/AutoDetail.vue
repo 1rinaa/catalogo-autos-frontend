@@ -171,7 +171,11 @@
             <i class="fas fa-times"></i>
             Cerrar
           </button>
-          <button class="btn-edit-modal" @click="handleEdit">
+          <button
+            v-if="isAuthenticated"
+            class="btn-edit-modal"
+            @click="handleEdit"
+          >
             <i class="fas fa-pen"></i>
             Editar Auto
           </button>
@@ -182,23 +186,33 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
   name: "AutoDetail",
   props: {
     auto: Object,
     visible: Boolean,
   },
+  computed: {
+    ...mapGetters(["isAuthenticated"]),
+  },
   methods: {
     getImagenUrl() {
-      // ✅ Si el auto tiene imagen, usarla DIRECTAMENTE (ya tiene la ruta correcta)
-      if (this.auto && this.auto.imagen) {
-        return this.auto.imagen;
+      if (!this.auto || !this.auto.imagen) {
+        return "/images/no-image.svg";
       }
-      // ✅ Si no tiene imagen, usar la local de respaldo
-      return "/images/no-image.svg";
+      const img = this.auto.imagen.trim();
+      if (
+        img.startsWith("http://") ||
+        img.startsWith("https://") ||
+        img.startsWith("/")
+      ) {
+        return img;
+      }
+      return `/images/autos/${img}`;
     },
     handleImageError(event) {
-      // ✅ Si la imagen falla, usar la local y no volver a intentar
       const img = event.target;
       if (img.src !== "/images/no-image.svg") {
         img.src = "/images/no-image.svg";

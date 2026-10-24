@@ -28,7 +28,11 @@
         </p>
       </div>
       <div class="header-actions">
-        <button class="btn-add" @click="mostrarForm = !mostrarForm">
+        <button
+          v-if="isAuthenticated"
+          class="btn-add"
+          @click="mostrarForm = !mostrarForm"
+        >
           <i class="fas fa-plus"></i>
           {{ mostrarForm ? "Cancelar" : "Agregar Marca" }}
         </button>
@@ -77,7 +81,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapGetters, mapActions } from "vuex";
 import FabricanteCard from "@/components/Fabricantes/FabricanteCard.vue";
 import FabricanteForm from "@/components/Fabricantes/FabricanteForm.vue";
 import FabricanteDetail from "@/components/Fabricantes/FabricanteDetail.vue";
@@ -99,6 +103,7 @@ export default {
   },
   computed: {
     ...mapState(["fabricantes", "autos"]),
+    ...mapGetters(["isAuthenticated"]),
   },
   mounted() {
     this.fetchFabricantes();

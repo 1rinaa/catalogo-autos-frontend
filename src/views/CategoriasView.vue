@@ -28,7 +28,11 @@
         </p>
       </div>
       <div class="header-actions">
-        <button class="btn-add" @click="mostrarForm = !mostrarForm">
+        <button
+          v-if="isAuthenticated"
+          class="btn-add"
+          @click="mostrarForm = !mostrarForm"
+        >
           <i class="fas fa-plus"></i>
           {{ mostrarForm ? "Cancelar" : "Agregar Categoría" }}
         </button>
@@ -77,7 +81,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapGetters, mapActions } from "vuex";
 import CategoriaCard from "@/components/Categorias/CategoriaCard.vue";
 import CategoriaForm from "@/components/Categorias/CategoriaForm.vue";
 import CategoriaDetail from "@/components/Categorias/CategoriaDetail.vue";
@@ -99,6 +103,7 @@ export default {
   },
   computed: {
     ...mapState(["categorias", "autos"]),
+    ...mapGetters(["isAuthenticated"]),
   },
   mounted() {
     this.fetchCategorias();

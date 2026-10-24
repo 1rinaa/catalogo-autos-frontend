@@ -75,8 +75,9 @@
                 >
                   <div class="auto-list-image">
                     <img
-                      :src="auto.imagen || '/images/no-image.svg'"
+                      :src="getAutoImageUrl(auto.imagen)"
                       :alt="auto.modelo"
+                      @error="handleImageError"
                     />
                   </div>
                   <div class="auto-list-info">
@@ -99,7 +100,11 @@
           <button class="btn-close-modal" @click="$emit('cerrar')">
             <i class="fas fa-times"></i> Cerrar
           </button>
-          <button class="btn-edit-modal" @click="handleEdit">
+          <button
+            v-if="isAuthenticated"
+            class="btn-edit-modal"
+            @click="handleEdit"
+          >
             <i class="fas fa-pen"></i> Editar Fabricante
           </button>
         </div>
@@ -109,6 +114,8 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
   name: "FabricanteDetail",
   props: {
@@ -117,6 +124,7 @@ export default {
     visible: Boolean,
   },
   computed: {
+    ...mapGetters(["isAuthenticated"]),
     autosFabricante() {
       if (!this.fabricante || !this.autos) return [];
       return this.autos.filter(
@@ -134,6 +142,21 @@ export default {
     verAuto(id) {
       this.$emit("ver-auto", id);
       this.$emit("cerrar");
+    },
+    getAutoImageUrl(imagen) {
+      if (!imagen) return "/images/no-image.svg";
+      const img = imagen.trim();
+      if (
+        img.startsWith("http://") ||
+        img.startsWith("https://") ||
+        img.startsWith("/")
+      ) {
+        return img;
+      }
+      return `/images/autos/${img}`;
+    },
+    handleImageError(event) {
+      event.target.src = "/images/no-image.svg";
     },
   },
 };

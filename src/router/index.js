@@ -1,13 +1,15 @@
 // src/router/index.js
-import Vue from "vue"; // ← Importante: primero Vue
+import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
 import AutosView from "../views/AutosView.vue";
 import FabricantesView from "../views/FabricantesView.vue";
 import CategoriasView from "../views/CategoriasView.vue";
+import LoginView from "../views/LoginView.vue";
+import RegisterView from "../views/RegisterView.vue";
+import ProfileView from "../views/ProfileView.vue";
 
-// IMPORTANTE: Vue.use() debe ir DESPUÉS de importar Vue
-Vue.use(VueRouter); // ← Esta línea debe estar aquí
+Vue.use(VueRouter);
 
 const routes = [
   {
@@ -29,6 +31,21 @@ const routes = [
     path: "/categorias",
     name: "Categorias",
     component: CategoriasView,
+  },
+  {
+    path: "/login",
+    name: "Login",
+    component: LoginView,
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: RegisterView,
+  },
+  {
+    path: "/profile",
+    name: "Profile",
+    component: ProfileView,
   },
 ];
 

@@ -33,7 +33,11 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn-add" @click="mostrarFormulario = !mostrarFormulario">
+        <button
+          v-if="isAuthenticated"
+          class="btn-add"
+          @click="mostrarFormulario = !mostrarFormulario"
+        >
           <i class="fas fa-plus"></i>
           {{ mostrarFormulario ? "Cancelar" : "Agregar Auto" }}
         </button>
@@ -154,7 +158,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapGetters, mapActions } from "vuex";
 import AutoCard from "@/components/Autos/AutoCard.vue";
 import AutoForm from "@/components/Autos/AutoForm.vue";
 import AutoDetail from "@/components/Autos/AutoDetail.vue";
@@ -183,6 +187,7 @@ export default {
   },
   computed: {
     ...mapState(["autos", "fabricantes", "categorias", "loading"]),
+    ...mapGetters(["isAuthenticated"]),
 
     totalPotencia() {
       return this.autosFiltrados.reduce(
@@ -344,9 +349,7 @@ export default {
 
     async verAuto(id) {
       try {
-        const response = await fetch(
-          `https://catalogo-autos-api-production.irina-rivera.workers.dev/api/autos/${id}`
-        );
+        const response = await fetch(`/api/autos/${id}`);
         const data = await response.json();
         this.autoSeleccionado = data;
         this.mostrarDetalle = true;
